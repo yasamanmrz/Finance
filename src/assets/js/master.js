@@ -3,8 +3,24 @@ let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 let banks = JSON.parse(localStorage.getItem("banks")) || [];
 let transfers = JSON.parse(localStorage.getItem("transfers")) || [];
 
+//toggletheme
+
+function toggletheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme')
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+  document.documentElement.setAttribute('data-theme', newTheme)
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme)
+  }
+}
+
 // Init
 document.addEventListener("DOMContentLoaded", () => {
+  loadTheme();
   renderTransactions();
   renderBanks();
   updateDashboard();
@@ -14,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 ////////////////////////////////////
 
-function showToast(message){
+function showToast(message) {
   const toast = document.getElementById('toast')
   toast.innerText = message
   toast.classList.remove('hidden')
@@ -42,13 +58,13 @@ function createBankSelector() {
     <select id="transaction-bank"class="border border-cyan-500 rounded-xl p-1">
       <option class="px-4 py-1 rounded-full bg-cyan-900 text-sm font-semibold" value="">Choose Bank</option>
       ${banks
-        .map((bank) => `
+      .map((bank) => `
             <option value="${bank.id}">
               ${bank.type} - ${bank.account}
             </option>
           `
-        )
-        .join("")}
+      )
+      .join("")}
     </select>
   `;
 
@@ -82,35 +98,44 @@ function refreshBankSelector() {
 // Forms Toggle
 
 function openTransactionForm() {
- document.getElementById("transaction-form").style.display = "block";
+  const form = document.getElementById("transaction-form");
+
+  form.classList.remove("hidden");
 
   refreshBankSelector();
 }
 
 function closeTransactionForm() {
-  document.getElementById("transaction-form").style.display = "none";
-  document.getElementById('transaction-amount').value=''
-  document.getElementById('transaction-date').value=''
-  document.getElementById('transaction-category').value='food'
-  document.getElementById('transaction-description').value=''
-  document.getElementById('transaction-bank').value=''
-}
+  const form = document.getElementById("transaction-form");
 
+  form.classList.add("hidden");
+
+  document.getElementById("transaction-amount").value = "";
+  document.getElementById("transaction-date").value = "";
+  document.getElementById("transaction-category").value = "food";
+  document.getElementById("transaction-description").value = "";
+
+  const bankSelect = document.getElementById("transaction-bank");
+
+  if (bankSelect) {
+    bankSelect.value = "";
+  }
+}
 function openBankForm() {
   document.getElementById("bank-form").style.display = "block";
 }
 
 function closeBankForm() {
   document.getElementById("bank-form").style.display = "none";
-  document.getElementById("bank-type").value=""
-  document.getElementById("bank-branch").value=""
-  document.getElementById("account").value=""
-  document.getElementById("bank-description").value=""
-  document.getElementById("money").value=""
-  document.getElementById("c1").value=""
-  document.getElementById("c2").value=""
-  document.getElementById("c3").value=""
-  document.getElementById("c4").value=""
+  document.getElementById("bank-type").value = ""
+  document.getElementById("bank-branch").value = ""
+  document.getElementById("account").value = ""
+  document.getElementById("bank-description").value = ""
+  document.getElementById("money").value = ""
+  document.getElementById("c1").value = ""
+  document.getElementById("c2").value = ""
+  document.getElementById("c3").value = ""
+  document.getElementById("c4").value = ""
 }
 
 // Save Transaction
@@ -137,11 +162,11 @@ function saveTransaction() {
   const selectedBank = banks.find((bank) => bank.id == bankId);
 
   if (type === "income") {
-    selectedBank.money = Number (selectedBank.money) + Number(amount);
+    selectedBank.money = Number(selectedBank.money) + Number(amount);
   }
 
   if (type === "expense") {
-    if(selectedBank.money < amount){
+    if (selectedBank.money < amount) {
       showToast('Not enough money in this bank')
       return;
     }
@@ -157,9 +182,9 @@ function saveTransaction() {
     description,
     bankId,
   });
-  
-  localStorage.setItem("transactions",JSON.stringify(transactions));
-  localStorage.setItem("banks",JSON.stringify(banks));
+
+  localStorage.setItem("transactions", JSON.stringify(transactions));
+  localStorage.setItem("banks", JSON.stringify(banks));
 
   renderTransactions();
   renderBanks();
@@ -172,7 +197,7 @@ function saveTransaction() {
 function renderTransactions() {
   const table = document.getElementById("transactions-table");
 
-  table.className ="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5";
+  table.className = "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5";
 
   table.innerHTML = "";
 
@@ -183,7 +208,7 @@ function renderTransactions() {
 
     const card = document.createElement("div");
 
-    card.className ="backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl p-5 shadow-2xl";
+    card.className = "bg-(--surface-secondary) border border-(--border) rounded-3xl p-5 shadow-2xl";
 
     card.innerHTML = `
     
@@ -210,14 +235,14 @@ function renderTransactions() {
       <div class="py-2">
         <span class="font-bold">Bank :</span>
 
-        <a href="#Bank-table" class="text-blue-600 underline">${bank ? bank.type : "No Bank"}</a>
+        <a href="#Bank-table" class="text-(--danger) underline">${bank ? bank.type : "No Bank"}</a>
       </div>
 
       <div class="py-2 break-words"><span class="font-bold">Description :</span>
         ${t.description || "-"}
       </div>
 
-      <button class="mt-6 w-full py-3 rounded-2xl bg-red-500/10 border border-red-400/20 text-red-300 hover:bg-red-500 hover:text-white hover:scale-[1.02] transition-all duration-300 font-bold" onclick="deleteTransaction(${t.id})">Delete</button>
+      <button class="mt-6 w-full py-3 rounded-2xl bg-(--secondary) border border-(--border) text-(--danger) hover:scale-[1.02] transition-all duration-300 font-bold" onclick="deleteTransaction(${t.id})">Delete</button>
     `;
 
     table.appendChild(card);
@@ -244,9 +269,9 @@ function deleteTransaction(id) {
 
   transactions = transactions.filter((t) => t.id !== id);
 
-  localStorage.setItem("transactions",JSON.stringify(transactions));
+  localStorage.setItem("transactions", JSON.stringify(transactions));
 
-  localStorage.setItem("banks",JSON.stringify(banks));
+  localStorage.setItem("banks", JSON.stringify(banks));
 
   renderTransactions();
   renderBanks();
@@ -286,7 +311,7 @@ function saveBank() {
     money,
     card,
   });
-  localStorage.setItem("banks",JSON.stringify(banks));
+  localStorage.setItem("banks", JSON.stringify(banks));
 
   renderBanks();
   updateDashboard();
@@ -298,14 +323,14 @@ function saveBank() {
 function renderBanks() {
   const table = document.getElementById("Bank-table");
 
-  table.className ="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5";
+  table.className = "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5";
 
   table.innerHTML = "";
 
   banks.forEach((b) => {
     const card = document.createElement("div");
 
-    card.className ="backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl p-5 shadow-2xl";
+    card.className = "bg-(--surface-secondary) border border-(--border) rounded-3xl p-5 shadow-2xl";
 
     card.innerHTML = `
 
@@ -334,7 +359,7 @@ function renderBanks() {
         ${b.card}
       </div>
 
-      <button class="mt-6 w-full py-3 rounded-2xl bg-red-500/10 border border-red-400/20 text-red-300 hover:bg-red-500 hover:text-white hover:scale-[1.02] transition-all duration-300 font-bold" onclick="deleteBank(${b.id})">Delete</button>
+      <button class="mt-6 w-full py-3 rounded-2xl bg-(--secondary) border border-(--border) text-(--danger) hover:scale-[1.02] transition-all duration-300 font-bold" onclick="deleteBank(${b.id})">Delete</button>
     `;
 
     table.appendChild(card);
@@ -349,9 +374,9 @@ function deleteBank(id) {
 
   transactions = transactions.filter((t) => t.bankId != id);
 
-  localStorage.setItem("banks",JSON.stringify(banks));
+  localStorage.setItem("banks", JSON.stringify(banks));
 
-  localStorage.setItem("transactions",JSON.stringify(transactions));
+  localStorage.setItem("transactions", JSON.stringify(transactions));
 
   renderBanks();
   renderTransactions();
@@ -366,42 +391,708 @@ function updateDashboard() {
   let income = 0;
   let expense = 0;
   let bankMoney = 0;
+  let incomeCount = 0;
+  let expenseCount = 0;
 
   transactions.forEach((t) => {
     if (t.type === "income") {
-      income += t.amount;
-    } else {
-      expense += t.amount;
+      income += Number(t.amount)
+      incomeCount++
+    }
+    if (t.type === "expense") {
+      expense += Number(t.amount)
+      expenseCount++
     }
   });
 
   banks.forEach((b) => {
-    bankMoney += b.money;
+    bankMoney += Number(b.money)
   });
 
   const balance = bankMoney;
 
-  document.getElementById("dashboard-income").innerText = income;
+  document.getElementById("dashboard-income").innerText = income.toLocaleString();
 
-  document.getElementById("dashboard-expense").innerText = expense;
+  document.getElementById("dashboard-income-count").innerText = incomeCount;
 
-  document.getElementById("dashboard-balance").innerText = balance;
+  document.getElementById("dashboard-expense").innerText = expense.toLocaleString();
 
-  document.getElementById("dashboard-budget").innerText = balance;
+  document.getElementById("dashboard-expense-count").innerText = expenseCount;
+
+  document.getElementById("dashboard-balance").innerText = balance.toLocaleString();
+
+  document.getElementById("dashboard-budget").innerText = balance.toLocaleString();
+
+  document.getElementById("dashboard-total-transactions").innerText = transactions.length;
+
+  const lastTransaction =
+    transactions.length > 0
+      ? transactions[transactions.length - 1]
+      : null;
+
+  const lastTransactionElement =
+    document.getElementById("dashboard-last-transaction");
+
+  const lastDateElement =
+    document.getElementById("dashboard-last-date");
+
+  if (lastTransaction) {
+    lastTransactionElement.innerText =
+      `${lastTransaction.type} - ${Number(lastTransaction.amount).toLocaleString()}`;
+
+    lastDateElement.innerText =
+      lastTransaction.date;
+  } else {
+    lastTransactionElement.innerText = "No transaction";
+    lastDateElement.innerText = "-";
+  }
 }
- 
+
+// =========================
+// REPORTS
+// =========================
+
+function updateReports() {
+
+  const now = new Date();
+
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  // Current Month
+  const currentMonthTransactions = transactions.filter((transaction) => {
+
+    const transactionDate = new Date(transaction.date);
+
+    return (
+      transactionDate.getFullYear() === currentYear &&
+      transactionDate.getMonth() === currentMonth
+    );
+
+  });
+
+
+  // Previous Month
+  const previousMonthDate = new Date(
+    currentYear,
+    currentMonth - 1,
+    1
+  );
+
+  const previousYear = previousMonthDate.getFullYear();
+  const previousMonth = previousMonthDate.getMonth();
+
+
+  const previousMonthTransactions = transactions.filter((transaction) => {
+
+    const transactionDate = new Date(transaction.date);
+
+    return (
+      transactionDate.getFullYear() === previousYear &&
+      transactionDate.getMonth() === previousMonth
+    );
+
+  });
+
+
+  // =========================
+  // CURRENT MONTH
+  // =========================
+
+  let currentIncome = 0;
+  let currentExpense = 0;
+
+  currentMonthTransactions.forEach((transaction) => {
+
+    const amount = Number(transaction.amount);
+
+    if (transaction.type === "income") {
+      currentIncome += amount;
+    }
+
+    if (transaction.type === "expense") {
+      currentExpense += amount;
+    }
+
+  });
+
+
+  // =========================
+  // PREVIOUS MONTH
+  // =========================
+
+  let previousIncome = 0;
+  let previousExpense = 0;
+
+  previousMonthTransactions.forEach((transaction) => {
+
+    const amount = Number(transaction.amount);
+
+    if (transaction.type === "income") {
+      previousIncome += amount;
+    }
+
+    if (transaction.type === "expense") {
+      previousExpense += amount;
+    }
+
+  });
+
+
+  // =========================
+  // UPDATE MONTHLY CARDS
+  // =========================
+
+  const monthExpenseElement =
+    document.getElementById("report-month-expense");
+
+  const monthIncomeElement =
+    document.getElementById("report-month-income");
+
+  const lastMonthElement =
+    document.getElementById("report-last-month");
+
+
+  if (monthExpenseElement) {
+
+    monthExpenseElement.innerText =
+      currentExpense.toLocaleString();
+
+  }
+
+
+  if (monthIncomeElement) {
+
+    monthIncomeElement.innerText =
+      currentIncome.toLocaleString();
+
+  }
+
+
+  if (lastMonthElement) {
+
+    lastMonthElement.innerText =
+      previousMonthTransactions.length;
+
+  }
+
+
+  // =========================
+  // MONTH COMPARISON
+  // =========================
+
+  const expenseDifference =
+    currentExpense - previousExpense;
+
+  const incomeDifference =
+    currentIncome - previousIncome;
+
+
+  const expenseComparison =
+    document.getElementById("report-expense-comparison");
+
+  const incomeComparison =
+    document.getElementById("report-income-comparison");
+
+  const expenseChange =
+    document.getElementById("report-expense-change");
+
+  const incomeChange =
+    document.getElementById("report-income-change");
+
+
+  if (expenseComparison) {
+
+    if (previousExpense === 0) {
+
+      expenseComparison.innerText =
+        "Compared to last month: No data";
+
+    } else {
+
+      const percentage =
+        ((expenseDifference / previousExpense) * 100).toFixed(1);
+
+      expenseComparison.innerText =
+        `Compared to last month: ${percentage}%`;
+
+    }
+
+  }
+
+
+  if (incomeComparison) {
+
+    if (previousIncome === 0) {
+
+      incomeComparison.innerText =
+        "Compared to last month: No data";
+
+    } else {
+
+      const percentage =
+        ((incomeDifference / previousIncome) * 100).toFixed(1);
+
+      incomeComparison.innerText =
+        `Compared to last month: ${percentage}%`;
+
+    }
+
+  }
+
+
+  if (expenseChange) {
+
+    if (previousExpense === 0) {
+
+      expenseChange.innerText = "No data";
+
+    } else {
+
+      const percentage =
+        ((expenseDifference / previousExpense) * 100).toFixed(1);
+
+      expenseChange.innerText =
+        `${percentage}%`;
+
+    }
+
+  }
+
+
+  if (incomeChange) {
+
+    if (previousIncome === 0) {
+
+      incomeChange.innerText = "No data";
+
+    } else {
+
+      const percentage =
+        ((incomeDifference / previousIncome) * 100).toFixed(1);
+
+      incomeChange.innerText =
+        `${percentage}%`;
+
+    }
+
+  }
+
+
+  // =========================
+  // TOP EXPENSE CATEGORY
+  // =========================
+
+  const categoryTotals = {};
+
+  currentMonthTransactions.forEach((transaction) => {
+
+    if (transaction.type !== "expense") {
+      return;
+    }
+
+    const category = transaction.category;
+
+    if (!categoryTotals[category]) {
+      categoryTotals[category] = 0;
+    }
+
+    categoryTotals[category] +=
+      Number(transaction.amount);
+
+  });
+
+
+  let topCategory = "-";
+  let topCategoryAmount = 0;
+
+
+  Object.keys(categoryTotals).forEach((category) => {
+
+    if (categoryTotals[category] > topCategoryAmount) {
+
+      topCategory = category;
+
+      topCategoryAmount =
+        categoryTotals[category];
+
+    }
+
+  });
+
+
+  const topCategoryElement =
+    document.getElementById("report-top-category");
+
+  const topCategoryAmountElement =
+    document.getElementById("report-top-category-amount");
+
+
+  if (topCategoryElement) {
+
+    topCategoryElement.innerText =
+      topCategory;
+
+  }
+
+
+  if (topCategoryAmountElement) {
+
+    topCategoryAmountElement.innerText =
+      topCategoryAmount > 0
+        ? topCategoryAmount.toLocaleString()
+        : "0";
+
+  }
+
+}
+
+
+// =========================
+// FILTER REPORTS
+// =========================
+
+function filterReports() {
+
+  const fromDate =
+    document.getElementById("report-date-from").value;
+
+  const toDate =
+    document.getElementById("report-date-to").value;
+
+  const type =
+    document.getElementById("report-type").value;
+
+  const category =
+    document.getElementById("report-category").value;
+
+
+  let filteredTransactions = [...transactions];
+
+
+  // =========================
+  // DATE FILTER
+  // =========================
+
+  if (fromDate) {
+
+    filteredTransactions =
+      filteredTransactions.filter((transaction) => {
+
+        return transaction.date >= fromDate;
+
+      });
+
+  }
+
+
+  if (toDate) {
+
+    filteredTransactions =
+      filteredTransactions.filter((transaction) => {
+
+        return transaction.date <= toDate;
+
+      });
+
+  }
+
+
+  // =========================
+  // TYPE FILTER
+  // =========================
+
+  if (type !== "all") {
+
+    filteredTransactions =
+      filteredTransactions.filter((transaction) => {
+
+        return transaction.type === type;
+
+      });
+
+  }
+
+
+  // =========================
+  // CATEGORY FILTER
+  // =========================
+
+  if (category !== "all") {
+
+    filteredTransactions =
+      filteredTransactions.filter((transaction) => {
+
+        return transaction.category === category;
+
+      });
+
+  }
+
+
+  renderReportResults(filteredTransactions);
+
+}
+
+
+// =========================
+// RENDER REPORT RESULTS
+// =========================
+
+function renderReportResults(filteredTransactions) {
+
+  const results =
+    document.getElementById("report-results");
+
+  const totalElement =
+    document.getElementById("report-filtered-total");
+
+  const summaryElement =
+    document.getElementById("report-result-summary");
+
+
+  if (!results) return;
+
+
+  results.innerHTML = "";
+
+
+  let totalAmount = 0;
+
+
+  filteredTransactions.forEach((transaction) => {
+
+    const amount =
+      Number(transaction.amount);
+
+    totalAmount += amount;
+
+
+    const bank =
+      banks.find(
+        (bank) => bank.id == transaction.bankId
+      );
+
+
+    const card =
+      document.createElement("div");
+
+
+    card.className =
+      "rounded-3xl p-5 shadow-lg bg-(--surface) border border-(--border)";
+
+
+    card.innerHTML = `
+
+    <div class="flex items-center justify-between gap-3 mb-4">
+
+      <span
+        class="text-sm font-semibold text-(--text-muted)"
+      >
+        Type
+      </span>
+
+      <span
+        class="font-bold
+        ${transaction.type === "income"
+        ? "text-(--success)"
+        : "text-(--danger)"
+      }"
+      >
+        ${transaction.type}
+      </span>
+
+    </div>
+
+
+    <div class="py-2">
+
+      <span class="font-semibold text-(--text-muted)">
+        Amount:
+      </span><span class="font-bold text-(--text)">
+      ${amount.toLocaleString()}
+    </span>
+
+  </div>
+
+
+  <div class="py-2">
+
+    <span class="font-semibold text-(--text-muted)">
+      Date:
+    </span>
+
+    <span class="text-(--text)">
+      ${transaction.date}
+    </span>
+
+  </div>
+
+
+  <div class="py-2">
+
+    <span class="font-semibold text-(--text-muted)">
+      Category:
+    </span>
+
+    <span class="text-(--text)">
+      ${transaction.category}
+    </span>
+
+  </div>
+
+
+  <div class="py-2">
+
+    <span class="font-semibold text-(--text-muted)">
+      Bank:
+    </span>
+
+    <span class="text-(--text)">
+      ${bank ? bank.type : "No Bank"}
+    </span>
+
+  </div>
+
+
+  <div class="py-2 break-words">
+
+    <span class="font-semibold text-(--text-muted)">
+      Description:
+    </span>
+
+    <span class="text-(--text)">
+      ${transaction.description || "-"}
+    </span>
+
+  </div>
+
+`;
+
+
+    results.appendChild(card);
+
+  });
+
+
+  // =========================
+  // TOTAL
+  // =========================
+
+  if (totalElement) {
+
+    totalElement.innerText =
+      totalAmount.toLocaleString();
+
+  }
+
+
+  // =========================
+  // SUMMARY
+  // =========================
+
+  if (summaryElement) {
+
+    if (filteredTransactions.length === 0) {
+
+      summaryElement.innerText =
+        "No transactions found";
+
+    } else {
+
+      summaryElement.innerText =
+        `${filteredTransactions.length} transaction(s) found`;
+
+    }
+
+  }
+
+}
+
+
+// =========================
+// CLEAR REPORT FILTER
+// =========================
+
+function clearReportFilter() {
+
+  document.getElementById("report-date-from").value = "";
+
+  document.getElementById("report-date-to").value = "";
+
+  document.getElementById("report-type").value = "all";
+
+  document.getElementById("report-category").value = "all";
+
+
+  renderReportResults(transactions);
+
+}
+
+
+// =========================
+// REPORT EVENTS
+// =========================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const applyButton =
+    document.getElementById("apply-report-filter");
+
+  const clearButton =
+    document.getElementById("clear-report-filter");
+
+
+  if (applyButton) {
+
+    applyButton.addEventListener(
+      "click",
+      filterReports
+    );
+
+  }
+
+
+  if (clearButton) {
+
+    clearButton.addEventListener(
+      "click",
+      clearReportFilter
+    );
+
+  }
+
+
+  updateReports();
+
+  renderReportResults(transactions);
+
+});
+
+
+
 ///////////////////////
-function openTransferForm(){
-  document.getElementById("transfer-form").style.display="block"
+function openTransferForm() {
+  const form = document.getElementById("transfer-form")
+  form.classList.remove('hidden')
   renderTransferBanks()
 }
 
-function renderTransferBanks(){
+function closeTransferForm() {
+  const form = document.getElementById("transfer-form");
+
+  form.classList.add("hidden");
+
+  document.getElementById("transfer-amount").value = "";
+  document.getElementById("transfer-description").value = "";
+}
+
+function renderTransferBanks() {
   const from = document.getElementById("transfer-from")
   const to = document.getElementById("transfer-to")
-  from.innerHTML=""
-  to.innerHTML=""
-  banks.forEach((bank)=>{
+  from.innerHTML = ""
+  to.innerHTML = ""
+  banks.forEach((bank) => {
     from.innerHTML += `
      <option value="${bank.id}">${bank.type} - ${bank.account}</option>
     `
@@ -462,15 +1153,15 @@ function saveTransfer() {
     description,
   });
 
-  localStorage.setItem("banks",JSON.stringify(banks));
+  localStorage.setItem("banks", JSON.stringify(banks));
 
-  localStorage.setItem("transfers",JSON.stringify(transfers));
+  localStorage.setItem("transfers", JSON.stringify(transfers));
 
   renderBanks();
   updateDashboard();
 
   showToast("Transfer successful");
-  document.getElementById("transfer-form").style.display="none"
+  closeTransferForm()
 }
 
 
@@ -494,13 +1185,13 @@ function setupCardInputs() {
       }
     );
 
-    input.addEventListener("keydown",(e) => {
-        const prev = input.getAttribute("data-prev");
+    input.addEventListener("keydown", (e) => {
+      const prev = input.getAttribute("data-prev");
 
-        if (e.key === "Backspace" && input.value.length === 0 && prev) {
-          document.getElementById(prev)?.focus();
-        }
+      if (e.key === "Backspace" && input.value.length === 0 && prev) {
+        document.getElementById(prev)?.focus();
       }
+    }
     );
   });
 }
